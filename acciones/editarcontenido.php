@@ -10,7 +10,8 @@
         } else {
             ?>
             <div class="publications-container">
-                <h2>Editar Contenido (ID: <?php echo $pub['id']; ?>)</h2>
+               <h2>Editar Contenido: <?php echo htmlspecialchars($pub['title']); ?></h2>
+
                 
                 <!-- Where we'll show success if we do AJAX save -->
                 <p class="update-message" id="ajaxSuccessMessage" style="display:none;"></p>
