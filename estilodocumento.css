@@ -1,0 +1,52 @@
+ 
+ @font-face {
+    font-family: 'Ubuntu';
+    src: url('file:///var/www/html/jocarsa-brown/ubuntu/Ubuntu-R.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+
+@font-face {
+    font-family: 'Ubuntu Mono';
+    src: url('file:///var/www/html/jocarsa-brown/ubuntu/UbuntuMono-R.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+    body{font-size:1.1em;font-family:Ubuntu;}
+    	p{
+text-align:justify;
+}
+a{
+	color:inherit;
+	text-decoration:none;
+}
+.table-of-contents ul{
+	list-style-type:none;
+}
+.language-shell{
+content: "shell: ";
+	background:black;
+	color:white;
+	font-family:monospace;
+}
+code {
+    font-family: 'Ubuntu Mono', monospace !important;
+}
+pre{
+	border:1px solid lightgrey;
+	border-radius:10px;
+	background:ghostwhite;
+	padding:10px;
+}
+.language-sql::before {
+  content: "Consulta SQL:\A\A";
+  white-space: pre-line;
+  font-weight: bold; /* optional styling */
+}
+.language-shell::before {
+  content: "Resultado de la consulta en el terminal:\A\A";
+  white-space: pre-line;
+  font-weight: bold; /* optional styling */
+}
