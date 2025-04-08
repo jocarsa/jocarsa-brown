@@ -1,6 +1,6 @@
 <!-- CABECERA -->
     <div class="header">
-        <h1>jocarsa | brown</h1>
+        <h1><img src="brown.png">jocarsa | brown</h1>
         <p>Bienvenido/a, <?php echo htmlspecialchars($_SESSION['nombre']); ?>.</p>
         <nav>
             <a href="index.php?action=publications">Publicaciones</a>

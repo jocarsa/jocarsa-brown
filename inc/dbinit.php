@@ -33,6 +33,7 @@ try {
         pub_date TEXT,
         size_h REAL,
         size_v REAL,
+        pdf_password TEXT,
         FOREIGN KEY (state_id) REFERENCES states(id)
     )");
 
@@ -64,3 +65,4 @@ try {
     die("Error con la base de datos: " . $e->getMessage());
 }
 ?>
+

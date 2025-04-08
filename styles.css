@@ -1,4 +1,24 @@
+ @font-face {
+    font-family: 'Ubuntu';
+    src: url('ubuntu/Ubuntu-R.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
 
+@font-face {
+    font-family: 'UbuntuBold';
+    src: url('ubuntu/Ubuntu-B.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+@font-face {
+    font-family: 'Ubuntu Mono';
+    src: url('ubuntu/UbuntuMono-R.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
 *{
 font-family: Ubuntu, sans-serif;
 }
@@ -39,7 +59,7 @@ nav a:hover { text-decoration: underline; }
 
 /* Contenedor principal */
 .main-content {
-    padding: 1em;
+    
 }
 
 /* Login container */
@@ -83,14 +103,14 @@ nav a:hover { text-decoration: underline; }
 .states-container,
 .publications-container {
     max-width: 100%;
-    margin: 20px auto;
+    
     background: #fff;
     padding: 1.5em;
     border: 1px solid #ccc;
     border-radius: 8px;
 }
 .states-container h2,
-.publications-container h2 { margin-top: 0; }
+.publications-container h2 { margin-top: 0;margin:0px; }
 
 /* Tablas */
 table {
@@ -142,11 +162,12 @@ form button:hover { background: #555; }
 .markdown-editor textarea {
     min-height: 100%;
     resize: vertical;
+    
 }
 
 /* Estilos básicos de preview */
 .markdown-preview h1 { border-bottom: 1px solid #ccc; margin-top: 0; }
-.markdown-preview h2 { border-bottom: 1px solid #ddd; margin-top: 1em; }
+.markdown-preview h2 { border-bottom: 1px solid #ddd; margin-top: 1em;margin-bottom: 1em; }
 .markdown-preview strong { font-weight: bold; }
 .markdown-preview em { font-style: italic; }
 .markdown-preview a { color:inherit;
@@ -203,6 +224,22 @@ code{
     width: 100%;
   }
 }
-
-
+.login-container img{
+	width:100%;
+}
+h1 img{
+	width:50px;
+	margin-right:20px;
+}
+h1{
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	align-content: stretch;
+}
+.publications-container input,.publications-container textarea,.publications-container select,.login-container input{
+	box-sizing:border-box;padding:20px;
+}
 

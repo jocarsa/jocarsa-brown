@@ -42,7 +42,7 @@
                     
                     <!-- Botón para renderizar a PDF (abre en una nueva pestaña) -->
                     <button type="button" onclick="window.open('pdf.php?id=<?php echo $pub['id']; ?>', '_blank')">
-                        Render to PDF
+                        Obtener PDF
                     </button>
                 </form>
             </div>
@@ -85,7 +85,7 @@
                     // Example from your snippet:
                     const headers = preview.querySelectorAll('h1, h2, h3, h4, h5, h6');
                     const numbering = [0,0,0,0,0,0];
-                    let tocHTML = '<h2>Table of Contents</h2><ul>';
+                    let tocHTML = '<h2>Índice de contenido</h2><ul>';
 
                     headers.forEach(header => {
                         const level = parseInt(header.tagName.substring(1));

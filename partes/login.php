@@ -1,6 +1,7 @@
 <!-- LOGIN -->
     <div class="login-container">
-        <h1>Iniciar Sesión</h1>
+    <img src="brown.png">
+        <h1>jocarsa | brown</h1>
         <?php if (isset($error)): ?>
             <div class="error"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>

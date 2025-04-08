@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Gestor de Publicaciones - 2 Pantallas de Edición</title>
+  <title>jocarsa | brown</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="estilodocumento.css">
+  <link rel="icon" type="image/svg+xml" href="brown.png" />
 </head>
 <body>

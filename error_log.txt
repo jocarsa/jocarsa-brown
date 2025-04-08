@@ -1,0 +1,1 @@
+[07-Apr-2025 21:26:17 UTC] PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 67010560 bytes) in /var/www/html/jocarsa-brown/pdf.php on line 155
