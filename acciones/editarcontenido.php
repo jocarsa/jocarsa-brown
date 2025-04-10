@@ -44,6 +44,10 @@
                     <button type="button" onclick="window.open('pdf.php?id=<?php echo $pub['id']; ?>', '_blank')">
                         Obtener PDF
                     </button>
+                    
+                    <button type="button" onclick="window.open('markdown.php?id=<?php echo $pub['id']; ?>', '_blank')">
+								 Obtener Markdown
+							</button>
                 </form>
             </div>
 
