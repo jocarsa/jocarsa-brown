@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// Increase memory limit and suppress on‐screen errors
+// Increase memory limit and log errors
 ini_set('memory_limit', '256M');
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
@@ -13,22 +13,22 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     die('Unauthorized access');
 }
 
-// Connect to the SQLite database
+// Connect to SQLite database
 $db_file = __DIR__ . '/database_v2.sqlite';
 try {
     $db = new PDO("sqlite:" . $db_file);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    die("Database error: " . $e->getMessage());
+    die('Database error: ' . $e->getMessage());
 }
 
-// Get the publication id from the URL
+// Get publication ID
 $id = $_GET['id'] ?? '';
 if (!$id) {
     die('No publication id specified.');
 }
 
-// Fetch the publication record
+// Fetch publication record
 $stmt = $db->prepare("SELECT * FROM publications WHERE id = :id");
 $stmt->execute([':id' => $id]);
 $pub = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -36,180 +36,210 @@ if (!$pub) {
     die('Publication not found.');
 }
 
-// Include the Markdown parser
-require_once('inc/jocarsa | navy.php');
+// Include Markdown parser
+require_once __DIR__ . '/inc/jocarsa | navy.php';
 
-// Convert the publication’s content from Markdown to HTML
-action: {
-    if (function_exists('markdownToHtml')) {
-        $htmlContent = markdownToHtml($pub['content']);
-    } else {
-        $htmlContent = '<p>' . htmlspecialchars($pub['content']) . '</p>';
-    }
-}
-
-// Inject heading numbering (we keep manual TOC injections if desired)
+// Convert Markdown to HTML and inject numbering & manual TOC
+$htmlContent = function_exists('markdownToHtml')
+    ? markdownToHtml($pub['content'])
+    : '<p>' . htmlspecialchars($pub['content']) . '</p>';
 $htmlContent = addNumberingAndTOC($htmlContent);
 
-// Create timestamp and document title
-$timestamp = date("Y-m-d-H-i-s");
-$documentTitle       = $pub['title'] . ' ' . $timestamp;
-$documentTitleSimple = $pub['title'];
-$documentAuthor      = $_SESSION['nombre'] ?? 'Unknown';
+// Generate titles and author info
+date_default_timezone_set('Europe/Madrid');
+$timestamp = date('Y-m-d-H-i-s');
+$docTitleSimple = $pub['title'];
+$docTitle       = $docTitleSimple . ' ' . $timestamp;
+$docAuthor      = $_SESSION['nombre'] ?? 'Unknown';
 
-// Build an HTML layout for the PDF with CSS
+// Load CSS and append custom rules
 $css = @file_get_contents(__DIR__ . '/estilodocumento.css');
-// Optionally append an explicit <hr> style to ensure visibility
-$css .= "\nhr { border: none; border-top: 1px solid #888; margin: 1.5em 0; height: 0; }";
+$css .= <<<CSS
 
-$html = '<!DOCTYPE html>
+/* Page setup */
+@page {
+  margin-top: 20mm;
+  margin-bottom: 15mm;
+  margin-left: 15mm;
+  margin-right: 15mm;
+}
+
+/* Ensure <hr> is visible */
+hr {
+  border: none;
+  border-top: 1px solid #888;
+  margin: 1.5em 0;
+  height: 0;
+}
+
+/* Fixed header */
+.pdf-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 15mm;
+  border-bottom: 1px solid #ccc;
+  background: white;
+  text-align: center;
+  line-height: 15mm;
+  font-size: 12px;
+}
+
+/* Fixed footer with page numbers */
+.pdf-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 15mm;
+  border-top: 1px solid #ccc;
+  background: white;
+  padding-right: 10mm;
+  text-align: right;
+  line-height: 15mm;
+  font-size: 12px;
+}
+.pdf-footer:after {
+  content: 'Page ' counter(page) ' of ' counter(pages);
+}
+
+/* Body content below header/footer */
+body {
+  margin: 0;
+  padding: 0;
+}
+CSS;
+
+// Build HTML
+$html = <<<HTML
+<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>' . htmlspecialchars($documentTitle) . '</title>
-    <meta name="author" content="' . htmlspecialchars($documentAuthor) . '">
-    <meta name="title" content="' . htmlspecialchars($documentTitle) . '">
-    <style>' . $css . '</style>
+  <meta charset="UTF-8">
+  <title>\${docTitle}</title>
+  <meta name="author" content="\${docAuthor}">
+  <meta name="title" content="\${docTitle}">
+  <style>
+    \$css
+  </style>
 </head>
 <body>
 
-<!-- Página 1: solo título grande centrado -->
-<div style="text-align: center; font-size: 5em; margin-top: 40vh;">
-    <strong>' . htmlspecialchars($documentTitleSimple) . '</strong>
-</div>
-<div style="page-break-after: always;"></div>
+  <!-- Header & Footer containers -->
+  <div class="pdf-header">My Header: <?php echo htmlspecialchars(\$docTitleSimple); ?></div>
+  <div class="pdf-footer"></div>
 
-<!-- Página 2: en blanco -->
-<div style="page-break-after: always;">.</div>
+  <!-- Content -->
+  <main>
+    <!-- Title page -->
+    <section style="text-align:center; font-size:5em; margin-top:40vh;">
+      <strong><?php echo htmlspecialchars(\$docTitleSimple); ?></strong>
+    </section>
+    <div style="page-break-after:always;"></div>
 
-<!-- Página 3: título, subtítulo, autor -->
-<div style="text-align: center; margin-top: 30vh;">
-    <h1 style="font-size: 5em; margin-top: 40vh;">' . htmlspecialchars($documentTitleSimple) . '</h1>
-    <h2 style="font-size: 3em; margin-top: 40vh;">' . htmlspecialchars($pub['subtitle'] ?? '') . '</h2>
-    <p style="margin-top: 3em; font-size: 2em;">Autor: ' . htmlspecialchars($documentAuthor) . '</p>
-</div>
-<div style="page-break-after: always;"></div>
+    <!-- Blank page -->
+    <div style="page-break-after:always;">.</div>
 
-<!-- Página 4: en blanco -->
-<div style="page-break-after: always;">.</div>
+    <!-- Title + subtitle + author -->
+    <section style="text-align:center; margin-top:30vh;">
+      <h1 style="font-size:5em;"><?php echo htmlspecialchars(\$docTitleSimple); ?></h1>
+      <h2 style="font-size:3em; margin-top:2em;">
+        <?php echo htmlspecialchars(\$pub['subtitle'] ?? ''); ?>
+      </h2>
+      <p style="font-size:2em; margin-top:2em;">Autor: <?php echo htmlspecialchars(\$docAuthor); ?></p>
+    </section>
+    <div style="page-break-after:always;"></div>
 
-<!-- Página 5: dedicatoria -->
-<div style="text-align: center; margin-top: 40vh; font-style: italic;">
-    <p>“Este libro está dedicado a todos los que aman aprender.”</p>
-</div>
-<div style="page-break-after: always;"></div>
+    <!-- Blank page -->
+    <div style="page-break-after:always;">.</div>
 
-<!-- Página 6: en blanco -->
-<div style="page-break-after: always;">.</div>
+    <!-- Dedication -->
+    <section style="text-align:center; margin-top:40vh; font-style:italic;">
+      <p>“Este libro está dedicado a todos los que aman aprender.”</p>
+    </section>
+    <div style="page-break-after:always;"></div>
 
-<!-- Página 7: contenido con TOC y demás -->
-' . $htmlContent . '
+    <!-- Blank page -->
+    <div style="page-break-after:always;">.</div>
 
+    <!-- Main content with manual TOC and headings -->
+    \$htmlContent
+  </main>
 </body>
-</html>';
+</html>
+HTML;
 
-// Generate PDF with KnpSnappy\Pdf
-require_once __DIR__ . '/vendor/autoload.php';
+// Generate PDF
+equire_once __DIR__ . '/vendor/autoload.php';
 use Knp\Snappy\Pdf;
 
-$snappy = new Pdf('/usr/bin/wkhtmltopdf');
-$snappy->setOption('enable-local-file-access', true);
+\$snappy = new Pdf('/usr/bin/wkhtmltopdf');
+\$snappy->setOption('enable-local-file-access', true);
 
-// Margins
-$snappy->setOption('margin-top',    '20mm');
-$snappy->setOption('margin-bottom', '20mm');
-$snappy->setOption('margin-left',   '15mm');
-$snappy->setOption('margin-right',  '15mm');
-
-// FULL-HTML HEADER (Option B)
-$snappy->setOption('header-html',   __DIR__ . '/header.html');
-$snappy->setOption('header-spacing', 5);
-
-// Footer with page numbers
-$snappy->setOption('footer-right',   'Page [page] of [topage]');
-$snappy->setOption('footer-line',    true);
-
-// Table of Contents with page numbers
-$snappy->setOption('toc',             true);
-$snappy->setOption('toc-header-text', 'Índice');
-
-// Optional: dynamic page size
-if (!empty($pub['size_h']) && !empty($pub['size_v'])) {
-    $snappy->setOption('page-width',  $pub['size_h'] . 'in');
-    $snappy->setOption('page-height', $pub['size_v'] . 'in');
+// Dynamic page size if provided
+if (!empty(\$pub['size_h']) && !empty(\$pub['size_v'])) {
+    \$snappy->setOption('page-width',  \$pub['size_h'] . 'in');
+    \$snappy->setOption('page-height', \$pub['size_v'] . 'in');
 }
 
-$snappy->setOption('title', $documentTitle);
-
+// Generate from single HTML string
 try {
-    $pdfOutput = $snappy->getOutputFromHtml($html);
-} catch (Exception $e) {
-    die('PDF generation error: ' . $e->getMessage());
+    \$pdfOutput = \$snappy->getOutputFromHtml(\$html);
+} catch (Exception \$e) {
+    die('PDF generation error: ' . \$e->getMessage());
 }
 
-// -------------------------------------------------------
-// 1. Save PDF into a "pdf" folder with publication id name
-// -------------------------------------------------------
-$pdfDir = __DIR__ . '/pdf';
-if (!file_exists($pdfDir)) {
-    mkdir($pdfDir, 0777, true);
-}
-$pdfFile = $pdfDir . '/publication_' . $id . '.pdf';
+// Save PDF file
+\$pdfDir  = __DIR__ . '/pdf';
+if (!is_dir(\$pdfDir)) mkdir(\$pdfDir, 0777, true);
+\$pdfFile = \$pdfDir . '/publication_' . \$id . '.pdf';
 
-// -------------------------------------------------------
-// 2. Optional PDF password protection (using a config field)
-// -------------------------------------------------------
-if (!empty($pub['pdf_password'])) {
-    $tempPdf   = $pdfDir . '/temp_' . $id . '.pdf';
-    file_put_contents($tempPdf, $pdfOutput);
-    $pw           = escapeshellarg($pub['pdf_password']);
-    $cmd          = "qpdf --encrypt $pw $pw 256 -- $tempPdf " . escapeshellarg($pdfFile);
-    exec($cmd, $out, $ret);
-    if ($ret !== 0) {
-        file_put_contents($pdfFile, $pdfOutput);
+// Optional encryption with qpdf
+if (!empty(\$pub['pdf_password'])) {
+    \$temp = \$pdfDir . '/temp_' . \$id . '.pdf';
+    file_put_contents(\$temp, \$pdfOutput);
+    \$pw = escapeshellarg(\$pub['pdf_password']);
+    exec("qpdf --encrypt \$pw \$pw 256 -- \$temp " . escapeshellarg(\$pdfFile), \$out, \$ret);
+    if (\$ret !== 0) {
+        file_put_contents(\$pdfFile, \$pdfOutput);
     }
-    unlink($tempPdf);
+    @unlink(\$temp);
 } else {
-    file_put_contents($pdfFile, $pdfOutput);
+    file_put_contents(\$pdfFile, \$pdfOutput);
 }
 
-// ------------------------------------------------------- 
-// 3. Redirect to the saved PDF URL
-// -------------------------------------------------------
-header("Location: pdf/publication_" . $id . ".pdf");
+// Redirect to PDF
+header('Location: pdf/publication_' . \$id . '.pdf');
 exit;
 
-
-/*********** FUNCTION: addNumberingAndTOC **********/
-function addNumberingAndTOC($html) {
-    // (kept unchanged) ...
-    $pattern = '/<h([1-6])>(.*?)<\/h\1>/i';
-    preg_match_all($pattern, $html, $matches, PREG_SET_ORDER);
-    if (!$matches) return $html;
-    $num = [0,0,0,0,0,0];
-    $toc = [];
-    foreach ($matches as $m) {
-        $lvl = (int)$m[1];
-        $txt = strip_tags($m[2]);
-        $num[$lvl-1]++;
-        for ($i=$lvl; $i<6; $i++) $num[$i]=0;
-        $label = implode('.', array_slice($num,0,$lvl)) . '. ';
-        $id    = 'heading-'.md5($txt . rand());
-        $html  = str_replace($m[0], sprintf('<h%d id="%s">%s%s</h%d>',
-                        $lvl, $id, $label, $txt, $lvl), $html);
-        $toc[] = ['level'=>$lvl,'id'=>$id,'text'=>$label.$txt];
+/**
+ * Manual TOC & Heading numbering function (unchanged)
+ */
+function addNumberingAndTOC(\$html) {
+    \$pattern = '/<h([1-6])>(.*?)<\/h\1>/i';
+    preg_match_all(\$pattern, \$html, \$matches, PREG_SET_ORDER);
+    if (!\$matches) return \$html;
+    \$numbering = [0,0,0,0,0,0];
+    \$tocItems   = [];
+    foreach (\$matches as \$m) {
+        \$lvl  = (int)\$m[1];
+        \$text = strip_tags(\$m[2]);
+        \$numbering[\$lvl-1]++;
+        for (\$i = \$lvl; \$i < 6; \$i++) { \$numbering[\$i] = 0; }
+        \$label = implode('.', array_slice(\$numbering, 0, \$lvl)) . '. ';
+        \$id    = 'heading-' . md5(\$text . rand());
+        \$html  = str_replace(\$m[0], sprintf('<h%d id="%s">%s%s</h%d>',
+                        \$lvl, \$id, \$label, \$text, \$lvl), \$html);
+        \$tocItems[] = ['level'=>\$lvl,'id'=>\$id,'text'=>\$label.\$text];
     }
-    // build manual TOC if you still want it
-    $tocHtml = '<div class="table-of-contents"><h2>Índice</h2><ul>';
-    foreach ($toc as $item) {
-        $tocHtml .= sprintf('<li style="margin-left:%dpx;">
-            <a href="#%s">%s</a></li>',
-            ($item['level']-1)*20,
-            htmlspecialchars($item['id']),
-            htmlspecialchars($item['text']));
+    \$tocHtml = '<div class="table-of-contents"><h2>Índice</h2><ul>';
+    foreach (\$tocItems as \$item) {
+        \$indent = (\$item['level']-1) * 20;
+        \$tocHtml .= sprintf('<li style="margin-left:%dpx;"><a href="#%s">%s</a></li>',
+            \$indent, htmlspecialchars(\$item['id']), htmlspecialchars(\$item['text']));
     }
-    $tocHtml .= '</ul></div>';
-    return $tocHtml . "\n\n" . $html;
+    \$tocHtml .= '</ul></div>';
+    return \$tocHtml . "\n\n" . \$html;
 }
-?>
 
