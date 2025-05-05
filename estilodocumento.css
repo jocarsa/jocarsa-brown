@@ -60,3 +60,11 @@ pre{
   white-space: pre-line;
   font-weight: bold; /* optional styling */
 }
+/* at the bottom of estilodocumento.css */
+hr {
+  border: none;
+  border-top: 1px solid #888; /* or whatever color/weight you like */
+  margin: 1.5em 0;
+  height: 0;
+}
+
