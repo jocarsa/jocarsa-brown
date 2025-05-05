@@ -173,7 +173,7 @@ if (!empty($pub['pdf_password'])) {
     file_put_contents($pdfFile, $pdfOutput);
 }
 
-// -------------------------------------------------------
+// ------------------------------------------------------- 
 // 3. Redirect to the saved PDF URL
 // -------------------------------------------------------
 header("Location: pdf/publication_" . $id . ".pdf");
